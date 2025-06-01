@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Loop Guard Browser Agent Visualization</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+    h1 { color: #343a40; text-align: center; margin-bottom: 30px; }
+    .timeline { display: flex; overflow-x: auto; margin-bottom: 30px; padding: 15px 5px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .step { min-width: 180px; margin-right: 15px; padding: 15px; border: 1px solid #dee2e6; border-radius: 6px; transition: all 0.3s ease; }
+    .step:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .step.loop { border-color: #dc3545; background-color: #f8d7da; }
+    .screenshot { max-width: 100%; border-radius: 4px; margin-top: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .confidence-high { background-color: #d4edda; border-left: 4px solid #28a745; }
+    .confidence-medium { background-color: #fff3cd; border-left: 4px solid #ffc107; }
+    .confidence-low { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+    .details { margin-top: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    pre { background-color: #f8f9fa; padding: 15px; border-radius: 4px; overflow: auto; }
+    .step-header { display: flex; justify-content: space-between; align-items: center; }
+    .step-number { font-weight: bold; color: #6c757d; }
+    .step-confidence { font-size: 0.8em; padding: 2px 6px; border-radius: 10px; background: #e9ecef; }
+    .step-action { font-weight: bold; margin: 10px 0; }
+    .memory-state { margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 6px; }
+    .refresh-btn { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .refresh-btn:hover { background: #0069d9; }
+  </style>
+</head>
+<body>
+  <h1>🧠 Loop Guard Browser Agent Visualization</h1>
+  <button class="refresh-btn" onclick="loadData()">Refresh Data</button>
+  <div class="timeline" id="timeline"></div>
+  <div class="details" id="details"></div>
+  
+  <script>
+    // Fetch and display data
+    async function loadData() {
+      const response = await fetch('/data');
+      const data = await response.json();
+      
+      const timeline = document.getElementById('timeline');
+      timeline.innerHTML = '';
+      
+      if (data.length === 0) {
+        timeline.innerHTML = '<p>No data available yet. Run the browser agent to see results.</p>';
+        return;
+      }
+      
+      data.forEach((step, index) => {
+        const stepEl = document.createElement('div');
+        stepEl.className = 'step';
+        if (step.isLooping) stepEl.className += ' loop';
+        
+        // Add confidence class if available
+        if (step.response && step.response.confidence !== undefined) {
+          const conf = step.response.confidence;
+          if (conf > 0.7) stepEl.className += ' confidence-high';
+          else if (conf > 0.4) stepEl.className += ' confidence-medium';
+          else stepEl.className += ' confidence-low';
+        }
+        
+        const confidenceDisplay = step.response?.confidence !== undefined 
+          ? (step.response.confidence * 100).toFixed(0) + '%' 
+          : 'N/A';
+        
+        stepEl.innerHTML = `
+          <div class="step-header">
+            <span class="step-number">Step ${step.iteration + 1}</span>
+            <span class="step-confidence">Confidence: ${confidenceDisplay}</span>
+          </div>
+          <div class="step-action">${step.response?.action || 'Unknown'}</div>
+        `;
+        
+        if (step.screenshotHash) {
+          stepEl.innerHTML += `<img class="screenshot" src="/screenshots/${step.screenshotHash}" alt="Screenshot" />`;
+        }
+        
+        stepEl.addEventListener('click', () => showDetails(step));
+        timeline.appendChild(stepEl);
+      });
+    }
+    
+    function showDetails(step) {
+      const details = document.getElementById('details');
+      
+      let alternativesHtml = '';
+      if (step.response?.alternatives?.length) {
+        alternativesHtml = `
+          <h3>Alternative Actions Considered:</h3>
+          <ul>
+            ${step.response.alternatives.map(alt => `<li>${alt}</li>`).join('')}
+          </ul>
+        `;
+      }
+      
+      let memoryStateHtml = '';
+      if (step.memoryState) {
+        memoryStateHtml = `
+          <div class="memory-state">
+            <h3>Memory State:</h3>
+            <p>Memory Size: ${step.memoryState.memorySize} / ${step.memoryState.limit}</p>
+            <p>Loop Detection Threshold: ${step.memoryState.loopThreshold}</p>
+          </div>
+        `;
+      }
+      
+      details.innerHTML = `
+        <h2>Details for Step ${step.iteration + 1}</h2>
+        <p><strong>Last Action:</strong> ${step.lastAction}</p>
+        <p><strong>Timestamp:</strong> ${step.timestamp || 'N/A'}</p>
+        ${step.response?.reasoning ? `<p><strong>Reasoning:</strong> ${step.response.reasoning}</p>` : ''}
+        ${alternativesHtml}
+        ${memoryStateHtml}
+        <h3>Raw Data:</h3>
+        <pre>${JSON.stringify(step, null, 2)}</pre>
+      `;
+    }
+    
+    // Initial load
+    loadData();
+    
+    // Refresh every 5 seconds
+    setInterval(loadData, 5000);
+  </script>
+</body>
+</html>

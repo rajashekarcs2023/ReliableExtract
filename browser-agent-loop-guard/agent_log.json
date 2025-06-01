@@ -1,33 +1,5 @@
-{"iteration":0,"imageHash":"a33d7189482b005505e3cd7bd432f42a"}
-{"iteration":0,"imageHash":"a33d7189482b005505e3cd7bd432f42a"}
-{"iteration":0,"lastAction":"none","nextAction":"Error: Failed to get response from Gemini"}
-{"iteration":0,"imageHash":"a33d7189482b005505e3cd7bd432f42a"}
-{"iteration":0,"lastAction":"none","nextAction":"The form requires a name and email. I should fill those in before proceeding.\n\nAction: Click on the \"Name\" input field.\n"}
-{"iteration":0,"imageHash":"a33d7189482b005505e3cd7bd432f42a"}
-{"iteration":0,"lastAction":"none","nextAction":"- type name"}
-{"iteration":1,"imageHash":"4da42153a3f6c54cc865f24e2ee66a0c"}
-{"iteration":1,"lastAction":"Typed name","nextAction":"- type email"}
-{"iteration":2,"imageHash":"87f77e6c3434a95f114ca77b70af3439"}
-{"iteration":2,"lastAction":"Typed email","nextAction":"click next to step 2\n"}
-{"iteration":3,"imageHash":"ecd247aef61680d4f2f6d209b011d95d"}
-{"iteration":3,"lastAction":"Failed action","nextAction":"select topic"}
-{"iteration":4,"imageHash":"4e7d78f2b22f77f1ab4f4d1430a9d5f9"}
-{"iteration":4,"lastAction":"Selected topic","nextAction":"check\n"}
-{"iteration":5,"imageHash":"554a22bee3401d574e2c689fb7d117d5"}
-{"iteration":5,"lastAction":"Checked terms","nextAction":"click next to step 3\n"}
-{"iteration":6,"imageHash":"7102e64199c832bba5b712b75fcb1b7d"}
-{"iteration":6,"lastAction":"Failed action","nextAction":"click submit"}
-{"iteration":0,"imageHash":"a33d7189482b005505e3cd7bd432f42a"}
-{"iteration":0,"lastAction":"none","nextAction":"- type name"}
-{"iteration":1,"imageHash":"4da42153a3f6c54cc865f24e2ee66a0c"}
-{"iteration":1,"lastAction":"Typed name","nextAction":"- type email\n"}
-{"iteration":2,"imageHash":"87f77e6c3434a95f114ca77b70af3439"}
-{"iteration":2,"lastAction":"Typed email","nextAction":"click next to step 2\n"}
-{"iteration":3,"imageHash":"ecd247aef61680d4f2f6d209b011d95d"}
-{"iteration":3,"lastAction":"Failed action","nextAction":"select topic"}
-{"iteration":4,"imageHash":"4e7d78f2b22f77f1ab4f4d1430a9d5f9"}
-{"iteration":4,"lastAction":"Selected topic","nextAction":"check\n"}
-{"iteration":5,"imageHash":"554a22bee3401d574e2c689fb7d117d5"}
-{"iteration":5,"lastAction":"Checked terms","nextAction":"click next to step 3\n"}
-{"iteration":6,"imageHash":"7102e64199c832bba5b712b75fcb1b7d"}
-{"iteration":6,"lastAction":"Failed action","nextAction":"click submit"}
+{"iteration":0,"lastAction":"none","response":{"action":"```json\n{\n  \"action\": \"type name\",\n  \"confidence\": 0.95,\n  \"reasoning\": \"The form is on the first step, which requires name and email. Filling the name field is the first logical step.\",\n  \"alternatives\": [\"type email\", \"click next to step 2\"]\n}\n```","confidence":0.5,"reasoning":"Response was not in JSON format","alternatives":[]},"timestamp":"2025-06-01T20:10:19.264Z","isLooping":false,"domContentPreview":"Multi-Step Form\n1\n2\n3\nStep 1 of 3\nBasic Info\nName\nEmail\nNext...","screenshotHash":"f22633d7354a61aa85ecd43aa738fd98"}
+{"iteration":1,"lastAction":"Typed name","response":{"action":"```json\n{\n  \"action\": \"type email\",\n  \"confidence\": 0.95,\n  \"reasoning\": \"The form requires both name and email. We have just typed the name, so now we should enter the email.\",\n  \"alternatives\": [\n    \"click next to step 2\",\n    \"click next\"\n  ]\n}\n```","confidence":0.5,"reasoning":"Response was not in JSON format","alternatives":[]},"timestamp":"2025-06-01T20:10:21.326Z","isLooping":false,"domContentPreview":"Multi-Step Form\n1\n2\n3\nStep 1 of 3\nBasic Info\nName\nEmail\nNext...","screenshotHash":"9e39dd6c130e0918331292cd4f93f0d0"}
+{"iteration":2,"lastAction":"Typed email","response":{"action":"```json\n{\n  \"action\": \"click next to step 2\",\n  \"confidence\": 0.9,\n  \"reasoning\": \"The Name and Email fields are filled, and the current step is 1 of 3. The logical next step is to advance to step 2 by clicking the 'Next' button.\",\n  \"alternatives\": []\n}\n```","confidence":0.5,"reasoning":"Response was not in JSON format","alternatives":[]},"timestamp":"2025-06-01T20:10:24.553Z","isLooping":false,"domContentPreview":"Multi-Step Form\n1\n2\n3\nStep 1 of 3\nBasic Info\nName\nEmail\nNext...","screenshotHash":"03e128a202c6f19e2b47a326c5c02318"}
+{"iteration":3,"lastAction":"Clicked next to step 2","response":{"action":"```json\n{\n  \"action\": \"select topic\",\n  \"confidence\": 0.9,\n  \"reasoning\": \"The current step requires selecting a topic of interest from a dropdown. Before proceeding, this selection needs to be made. Clicking next to the step button does not do anything.\",\n  \"alternatives\": [\"check\", \"click next to step 3\", \"click submit\"]\n}\n```","confidence":0.5,"reasoning":"Response was not in JSON format","alternatives":[]},"timestamp":"2025-06-01T20:10:26.397Z","isLooping":false,"domContentPreview":"Multi-Step Form\n1\n2\n3\nStep 2 of 3\nPreferences\nTopic of Interest\nSelect a topic\nAgent Reliability\nLoo...","screenshotHash":"fe0dbc2250d7a22badc8459ee7bb37eb"}
+{"iteration":4,"lastAction":"Selected topic","response":{"action":"⚠️ Detected repeating pattern. Escalating to human.","confidence":1,"reasoning":"Agent detected a loop in the interaction pattern","alternatives":[],"isError":true},"timestamp":"2025-06-01T20:10:26.448Z","isLooping":true,"memoryState":{"memorySize":5,"limit":10,"stateHistory":[{"hash":"0e0175329aad408a7cf3629e2a119380","timestamp":1748808617719,"statePreview":"Multi-Step Form\n1\n2\n3\nStep 1 of 3\nBasic Info\nName\nEmail\nNextnone...","similarityScores":[]},{"hash":"f2c2cc5909cc70a3a25696077899a046","timestamp":1748808619952,"statePreview":"Multi-Step Form\n1\n2\n3\nStep 1 of 3\nBasic Info\nName\nEmail\nNextTyped name...","similarityScores":[{"index":0,"hash":"0e0175329aad408a7cf3629e2a119380","similarity":0.5}]},{"hash":"5ac751f4c39f5b8854f97a61cc000d8f","timestamp":1748808623185,"statePreview":"Multi-Step Form\n1\n2\n3\nStep 1 of 3\nBasic Info\nName\nEmail\nNextTyped email...","similarityScores":[{"index":0,"hash":"0e0175329aad408a7cf3629e2a119380","similarity":0.5703125},{"index":1,"hash":"f2c2cc5909cc70a3a25696077899a046","similarity":0.4609375}]},{"hash":"49590e281f21706a4f5cfa65ee282d09","timestamp":1748808624622,"statePreview":"Multi-Step Form\n1\n2\n3\nStep 2 of 3\nPreferences\nTopic of Interest\nSelect a topic\nAgent Reliability\nLoo...","similarityScores":[{"index":0,"hash":"0e0175329aad408a7cf3629e2a119380","similarity":0.5078125},{"index":1,"hash":"f2c2cc5909cc70a3a25696077899a046","similarity":0.5078125},{"index":2,"hash":"5ac751f4c39f5b8854f97a61cc000d8f","similarity":0.5625}]},{"hash":"619cf1ef8fc90321c21d978fd9d6341b","timestamp":1748808626448,"statePreview":"Multi-Step Form\n1\n2\n3\nStep 2 of 3\nPreferences\nTopic of Interest\nSelect a topic\nAgent Reliability\nLoo...","similarityScores":[{"index":0,"hash":"0e0175329aad408a7cf3629e2a119380","similarity":0.421875},{"index":1,"hash":"f2c2cc5909cc70a3a25696077899a046","similarity":0.5625},{"index":2,"hash":"5ac751f4c39f5b8854f97a61cc000d8f","similarity":0.4921875},{"index":3,"hash":"49590e281f21706a4f5cfa65ee282d09","similarity":0.4765625}]}],"loopThreshold":6,"partialLoopThreshold":0.95}}
