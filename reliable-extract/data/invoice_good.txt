@@ -1,0 +1,7 @@
+Invoice # INV-2023-001
+Date: 2023-10-26
+Customer: ABC Corp
+Items:
+- Item 1: $100.00
+- Item 2: $50.00
+Total Amount Due: $150.00

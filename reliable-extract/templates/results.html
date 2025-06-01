@@ -1,0 +1,69 @@
+<!-- templates/results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extraction Results</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f4f4f4; }
+        .container { background-color: white; padding: 2em; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 1000px; margin: auto; }
+        h1, h2 { color: #333; text-align: center; }
+        h2 { margin-top: 1.5em; }
+        pre { background-color: #eee; padding: 1em; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;}
+        .status-success { color: green; font-weight: bold; }
+        .status-failure { color: red; font-weight: bold; }
+        .attempt-card { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; padding: 1em; margin-bottom: 1em; }
+        .error-list { color: red; }
+        .back-button { display: block; text-align: center; margin-top: 2em; padding: 0.8em 1.5em; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; }
+        .back-button:hover { background-color: #5a6268; }
+        strong { color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Extraction Results for "{{ document_name }}"</h1>
+
+        <h2>Final Status: <span class="status-{{ result.final_status }}">{{ result.final_status.upper() }}</span></h2>
+
+        <h3>Final Extracted Data:</h3>
+        <pre>{{ result.final_data | tojson(2) }}</pre>
+
+        {% if result.validation_errors %}
+            <h3>Final Validation Errors:</h3>
+            <ul class="error-list">
+                {% for error in result.validation_errors %}
+                    <li><strong>{{ error.field }}:</strong> {{ error.error }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No final validation errors.</p>
+        {% endif %}
+
+        <h2>Agent Attempt History:</h2>
+        {% for attempt in result.attempt_history %}
+            <div class="attempt-card">
+                <h3>Attempt {{ attempt.attempt }}: {{ "SUCCESS" if attempt.is_valid else "FAILURE" }}</h3>
+                <p><strong>Prompt Sent to LLM:</strong></p>
+                <pre>{{ attempt.prompt }}</pre>
+                <p><strong>Raw LLM Output:</strong></p>
+                <pre>{{ attempt.raw_llm_output }}</pre>
+                <p><strong>Parsed Extracted Data:</strong></p>
+                <pre>{{ attempt.extracted_data | tojson(2) }}</pre>
+                {% if attempt.errors %}
+                    <p><strong>Validation Errors for this Attempt:</strong></p>
+                    <ul class="error-list">
+                        {% for error in attempt.errors %}
+                            <li><strong>{{ error.field }}:</strong> {{ error.error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No validation errors for this attempt.</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <a href="/" class="back-button">Perform Another Extraction</a>
+    </div>
+</body>
+</html>

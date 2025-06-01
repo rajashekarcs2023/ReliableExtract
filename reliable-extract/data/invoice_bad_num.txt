@@ -1,0 +1,6 @@
+Invoice No: INVOICE_X
+Date: 2023-10-26
+Customer: XYZ Ltd
+Items:
+- Item A: $200.00
+Total Due: $200.00

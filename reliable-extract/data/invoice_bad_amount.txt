@@ -1,0 +1,6 @@
+Invoice # INV-2023-003
+Date: 2023-10-27
+Customer: Data Services Inc.
+Items:
+- Service Fee: $300.00
+Total Amount: Three Hundred Dollars
