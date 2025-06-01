@@ -3,7 +3,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const PORT = 3003; // Changed from 3001 to 3003 to avoid conflicts
+const PORT = 3001;
 
 // Serve static files (but only for assets, not index.html)
 app.use('/screenshots', express.static(path.join(__dirname, 'visualization', 'screenshots')));
@@ -75,8 +75,7 @@ app.get('/api/analytics', (req, res) => {
     
     const analytics = {
       totalSteps: logs.length,
-      loopDetections: logs.filter(log => log.isLoopDetected).length,
-      selfCorrections: logs.filter(log => log.response?.isSelfCorrection).length,
+      loopDetections: logs.filter(log => log.isLooping).length,
       confidenceDistribution: {
         high: logs.filter(log => log.response?.confidence > 0.7).length,
         medium: logs.filter(log => log.response?.confidence > 0.4 && log.response?.confidence <= 0.7).length,
@@ -110,7 +109,6 @@ app.get('/', (req, res) => {
     .card-header { background-color: #343a40; color: white; }
     .timeline-item { padding: 15px; border-left: 3px solid #007bff; margin-bottom: 10px; background-color: white; }
     .timeline-item.loop { border-left-color: #dc3545; }
-    .timeline-item.self-correction { border-left-color: #ffc107; background-color: #fff3cd; }
     .screenshot { max-width: 100%; border-radius: 5px; }
     .confidence-high { background-color: #d4edda; }
     .confidence-medium { background-color: #fff3cd; }
@@ -133,42 +131,22 @@ app.get('/', (req, res) => {
           <div class="card-header">Agent Statistics</div>
           <div class="card-body">
             <div class="row">
-              <div class="col-6 mb-3">
-                <div class="card bg-light">
-                  <div class="card-body text-center">
-                    <h3 id="totalSteps">0</h3>
-                    <small>Total Steps</small>
-                  </div>
-                </div>
+              <div class="col-6 text-center mb-3">
+                <div class="text-muted">Total Steps</div>
+                <div id="totalSteps" style="font-size: 24px; font-weight: bold;">-</div>
               </div>
-              <div class="col-6 mb-3">
-                <div class="card bg-light">
-                  <div class="card-body text-center">
-                    <h3 id="loopDetections">0</h3>
-                    <small>Loop Detections</small>
-                  </div>
-                </div>
+              <div class="col-6 text-center mb-3">
+                <div class="text-muted">Loop Detections</div>
+                <div id="loopDetections" style="font-size: 24px; font-weight: bold;">-</div>
               </div>
-              <div class="col-6 mb-3">
-                <div class="card bg-light">
-                  <div class="card-body text-center">
-                    <h3 id="selfCorrections">0</h3>
-                    <small>Self-Corrections</small>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 mb-3">
-                <div class="card bg-light">
-                  <div class="card-body text-center">
-                    <h3 id="avgConfidence">0%</h3>
-                    <small>Avg Confidence</small>
-                  </div>
-                </div>
+              <div class="col-6 text-center">
+                <div class="text-muted">Avg. Confidence</div>
+                <div id="avgConfidence" style="font-size: 24px; font-weight: bold;">-</div>
               </div>
             </div>
           </div>
         </div>
-        
+
         <div class="card">
           <div class="card-header">Memory State</div>
           <div class="card-body" id="memoryDetails">
@@ -188,7 +166,7 @@ app.get('/', (req, res) => {
           </div>
         </div>
       </div>
-      
+
       <!-- Details Panel -->
       <div class="col-md-4">
         <div class="card">
@@ -222,25 +200,20 @@ app.get('/', (req, res) => {
         const memoryResponse = await fetch('/api/memory');
         const memory = await memoryResponse.json();
         
-        // Update statistics
+        // Update stats
         document.getElementById('totalSteps').textContent = analytics.totalSteps || 0;
         document.getElementById('loopDetections').textContent = analytics.loopDetections || 0;
-        document.getElementById('selfCorrections').textContent = analytics.selfCorrections || 0;
         document.getElementById('avgConfidence').textContent = 
-          analytics.averageConfidence ? Math.round(analytics.averageConfidence * 100) + '%' : '0%';
+          analytics.averageConfidence ? (analytics.averageConfidence * 100).toFixed(0) + '%' : 'N/A';
         
         // Update memory details
-        const memoryDetails = document.getElementById('memoryDetails');
-        if (Object.keys(memory).length === 0) {
-          memoryDetails.innerHTML = '<p class="text-center text-muted">No memory data available</p>';
-        } else {
-          memoryDetails.innerHTML = `
-            <div>
-              <h6>Patterns Detected: ${Object.keys(memory.patterns || {}).length}</h6>
-              <h6>Visual Hashes: ${memory.visualHashes ? memory.visualHashes.length : 0}</h6>
-              <small class="text-muted">Last updated: ${new Date().toLocaleTimeString()}</small>
+        if (memory) {
+          document.getElementById('memoryDetails').innerHTML = \`
+            <div style="padding: 10px; background-color: #e9ecef; border-radius: 5px;">
+              <div><strong>States in Memory:</strong> \${memory.memorySize || 0}/\${memory.limit || 10}</div>
+              <div><strong>Loop Threshold:</strong> \${memory.loopThreshold || 'N/A'}</div>
             </div>
-          `;
+          \`;
         }
         
         // Update timeline
@@ -256,32 +229,24 @@ app.get('/', (req, res) => {
             
             const timelineItem = document.createElement('div');
             timelineItem.className = 'timeline-item';
+            if (log.isLooping) timelineItem.className += ' loop';
             
-            // Add special classes for loop detection and self-correction
-            if (log.isLoopDetected) {
-              timelineItem.classList.add('loop');
-            }
-            
-            if (log.response?.isSelfCorrection) {
-              timelineItem.classList.add('self-correction');
-            }
-            
-            timelineItem.innerHTML = `
+            timelineItem.innerHTML = \`
               <h5>
-                Step ${log.iteration + 1}
-                <span class="badge bg-${getBadgeColor(confidenceLevel)} float-end">
-                  ${log.response?.confidence ? (log.response.confidence * 100).toFixed(0) + '%' : 'N/A'}
+                Step \${log.iteration + 1}
+                <span class="badge bg-\${getBadgeColor(confidenceLevel)} float-end">
+                  \${log.response?.confidence ? (log.response.confidence * 100).toFixed(0) + '%' : 'N/A'}
                 </span>
               </h5>
-              <p><strong>Action:</strong> ${log.response?.action || 'Unknown'}</p>
-              ${log.timestamp ? `<small class="text-muted">${new Date(log.timestamp).toLocaleTimeString()}</small>` : ''}
-            `;
+              <p><strong>Action:</strong> \${log.response?.action || 'Unknown'}</p>
+              \${log.timestamp ? \`<small class="text-muted">\${new Date(log.timestamp).toLocaleTimeString()}</small>\` : ''}
+            \`;
             
             if (log.screenshotHash) {
               const img = document.createElement('img');
               img.className = 'screenshot mt-2';
-              img.src = `/screenshots/${log.screenshotHash}`;
-              img.alt = `Screenshot for step ${log.iteration + 1}`;
+              img.src = \`/screenshots/\${log.screenshotHash}\`;
+              img.alt = \`Screenshot for step \${log.iteration + 1}\`;
               timelineItem.appendChild(img);
             }
             
@@ -292,7 +257,7 @@ app.get('/', (req, res) => {
         
         // Update last updated time
         document.getElementById('lastUpdated').textContent = 
-          `Last updated: ${new Date().toLocaleTimeString()}`;
+          \`Last updated: \${new Date().toLocaleTimeString()}\`;
       } catch (err) {
         console.error('Error refreshing data:', err);
       }
@@ -314,85 +279,59 @@ app.get('/', (req, res) => {
     function showDetails(log) {
       const detailsPanel = document.getElementById('detailsPanel');
       
-      // Create loop detection alert if applicable
-      let loopAlertHtml = '';
-      if (log.isLoopDetected) {
-        loopAlertHtml = `
-          <div class="alert alert-danger mb-3" role="alert">
-            <h4 class="alert-heading">Loop Detected!</h4>
-            <p>The agent has detected a potential loop in its actions.</p>
-            ${log.loopPattern ? `<p><strong>Pattern:</strong> ${log.loopPattern.join(' → ')}</p>` : ''}
-          </div>
-        `;
-      }
-      
-      // Create self-correction alert if applicable
-      let selfCorrectionAlertHtml = '';
-      if (log.response?.isSelfCorrection) {
-        const attemptNumber = log.selfCorrectionAttempt || 1;
-        selfCorrectionAlertHtml = `
-          <div class="alert alert-warning mb-3" role="alert">
-            <h4 class="alert-heading">Self-Correction Attempt #${attemptNumber}</h4>
-            <p>The agent is trying to correct its behavior after detecting a loop.</p>
-          </div>
-        `;
-      }
-      
-      // Create reasoning section if available
       let reasoningHtml = '';
       if (log.response?.reasoning) {
-        reasoningHtml = `
+        reasoningHtml = \`
           <div class="card mb-3">
             <div class="card-header">Reasoning</div>
             <div class="card-body">
-              <p>${log.response.reasoning}</p>
+              <p>\${log.response.reasoning}</p>
             </div>
           </div>
-        `;
+        \`;
       }
       
-      // Create alternatives section if available
       let alternativesHtml = '';
-      if (log.response?.alternatives && log.response.alternatives.length > 0) {
-        alternativesHtml = `
+      if (log.response?.alternatives?.length) {
+        alternativesHtml = \`
           <div class="card mb-3">
             <div class="card-header">Alternative Actions</div>
             <div class="card-body">
-              <ul class="list-group">
-                ${log.response.alternatives.map(alt => `
-                  <li class="list-group-item">
-                    <strong>${alt.action}</strong>
-                    ${alt.reasoning ? `<p><small>${alt.reasoning}</small></p>` : ''}
-                  </li>
-                `).join('')}
+              <ul>
+                \${log.response.alternatives.map(alt => \`<li>\${alt}</li>\`).join('')}
               </ul>
             </div>
           </div>
-        `;
+        \`;
       }
       
-      // Combine all sections into the details panel
-      detailsPanel.innerHTML = `
-        <div class="card mb-3">
-          <div class="card-header">Step ${log.iteration + 1} Details</div>
-          <div class="card-body">
-            <h5>Action: ${log.response?.action || 'Unknown'}</h5>
-            ${log.timestamp ? `<p class="text-muted">${new Date(log.timestamp).toLocaleString()}</p>` : ''}
+      let loopDetectionHtml = '';
+      if (log.isLooping) {
+        loopDetectionHtml = \`
+          <div class="alert alert-danger">
+            <strong>Loop Detected!</strong> The agent detected a potential loop in this step.
           </div>
+        \`;
+      }
+      
+      detailsPanel.innerHTML = \`
+        <h4>Step \${log.iteration + 1} Details</h4>
+        \${loopDetectionHtml}
+        <div class="mb-3">
+          <strong>Last Action:</strong> \${log.lastAction}<br>
+          <strong>Current Action:</strong> \${log.response?.action || 'Unknown'}<br>
+          <strong>Timestamp:</strong> \${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}<br>
+          <strong>Confidence:</strong> \${log.response?.confidence ? (log.response.confidence * 100).toFixed(0) + '%' : 'N/A'}
         </div>
-        
-        ${loopAlertHtml}
-        ${selfCorrectionAlertHtml}
-        ${reasoningHtml}
-        ${alternativesHtml}
-        
+        \${reasoningHtml}
+        \${alternativesHtml}
         <div class="card">
           <div class="card-header">Raw Data</div>
           <div class="card-body">
-            <pre style="max-height: 200px; overflow-y: auto;">${JSON.stringify(log, null, 2)}</pre>
+            <pre style="max-height: 200px; overflow-y: auto;">\${JSON.stringify(log, null, 2)}</pre>
           </div>
         </div>
-      `;
+      \`;
     }
     
     // Initialize
